@@ -1,0 +1,288 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 11/06/2022 12:09:49 PM
+// Design Name: 
+// Module Name: twos_compliment
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+// Code your design here
+// Code your design here
+//Control Module
+
+  `define S0 2'b00
+  `define S1 2'b01
+  `define S2 2'b10
+  `define S3 2'b11
+
+module MultC_CTRL (CLK, Load,Start,Reset,M, K, Done,AddRshift,Cm,Rshift);
+  
+input CLK;
+input Start;
+input Reset;
+input M;
+input K;
+
+  
+output reg Load,Rshift,AddRshift,Cm,Done;
+  
+//output wire[2:0] state_out;
+//output wire[2:0] nextstate_out;
+  
+  reg[2:0] PS,NS;
+  
+  
+  //assign state_out = PS;
+ // assign nextState_out=NS;
+    
+    always @(posedge CLK)
+      begin
+        if(Reset) begin
+          PS <= `S0;
+        end
+        else begin
+          PS<=NS;
+        end
+      end
+        
+  
+  
+  //control logic
+  always @(*)
+    begin
+  Load = 1'b0;
+  Rshift = 1'b0;
+  AddRshift = 1'b0;
+  Done= 1'b0;
+  Cm = 1'b0;
+  
+    case (PS)
+      `S0 : begin
+        if(Start == 1) begin
+          Load = 1'b1;
+          NS = `S1;
+        end
+        else begin
+          NS = `S0;
+      end
+      end //end os S0
+      
+      `S1 : begin
+        if(M == 1) begin
+        
+          AddRshift = 1'b1;
+        end
+        else begin
+          Rshift = 1'b1;
+      end
+     
+     
+        if(K == 1) begin
+        Cm = 1'b0;
+        NS = `S2;
+       Done = 1'b1;
+      end
+      end//end of S1
+      
+ `S2 : begin
+   Done = 1'b0;
+   NS = `S2;
+ end //end of S2
+      
+    endcase //case end
+    end //always end 
+endmodule //end of module
+
+//datapath module
+module MultC_DP ( CLK,Load,Rshift,AddRshift,Cm, K,M,Mplier, Mcand, Product);
+  
+  parameter N = 4;
+input Load;
+input Rshift;
+input AddRshift;
+input Cm;
+input CLK;
+
+
+  input[N-1:0] Mplier;//multiplier
+  input[N-1:0] Mcand;//multiplicand
+  
+output[2*N-1:0] Product;
+output K, M;
+
+reg[N-1:0] Accum, B;
+//reg[N-1:0] State,PS, NS;
+reg [N-2:0] Counter;
+  
+  wire[N-1:0] compout;
+  wire[N-1:0] addout;
+  
+  
+//assign state_out = PS;
+assign K = ~Counter[0];
+  
+  
+always @(posedge CLK)
+begin
+if(Load == 1'b1) begin
+Counter <= {N*{1'b1}};
+end
+else begin
+Counter <= {1'b0, Counter[N-2:1]};
+end
+end 
+
+
+assign compout = (Cm == 1'b1) ? ~Mcand : Mcand ;
+assign addout = Accum + compout + Cm ;
+
+
+  
+always @(posedge CLK)
+ begin
+ if (Load == 1'b1)
+ begin
+   Accum <= {N+1 {1'b0}};
+ B <= Mplier ;
+ //Counter <= {N*{1'b1}};
+ end
+   
+   
+   if (AddRshift == 1'b1)
+ begin
+   //Accum = Accum[N:0] + Mcand;
+   Accum <= {compout[N-1], addout[N-1:1]} ;
+   B <= {addout[0], B[N-1:1]} ;
+  //Counter <= {1'b0, Counter[N-2:1]};
+  //K = ~K[0];
+   
+ end
+     
+   if (Rshift == 1'b1)
+ begin
+   Accum <= {Accum[N-1], Accum[N-1:1]} ;
+   B <= {Accum[0], B[N-1:1]} ;
+  //Counter <= {1'b0, Counter[N-2:1]};
+   // K = ~K[0];
+ end
+   
+ //State <= NS ;
+ end
+  assign Product = {Accum[N-1:0], B} ;
+endmodule
+
+//2C module
+module MultC_2C ( CLK,Done,Reset, Mplier, Mcand, Product);
+  
+parameter N = 4;
+ //input Start;
+ input CLK;
+ input Reset;
+
+ 
+  
+  input[N-1:0] Mplier;//multiplier
+  input[N-1:0] Mcand;//multiplicand
+  
+  output[2*N-1:0] Product;
+  output Done;
+  
+  
+  wire Load;
+  wire Rshift;
+  wire AddRshift;
+  wire Cm;
+  wire M;
+  wire K;
+  
+  MultC_DP # (.N(N)) mult1(.CLK(CLK),.Load(Load),.Rshift(Rshift),.AddRshift(AddRshift),.Cm(Cm),.K(K),.M(M),.Mplier(Mplier), .Mcand(Mcand), .Product(Product));
+  
+ 
+  
+  MultC_CTRL mult2 (.CLK(CLK), .Start(Start),.Reset(Reset),.M(M), .K(K), .Done(Done),.AddRshift(AddRshift),.Cm(Cm),.Rshift(Rshift));
+  
+endmodule
+
+
+//testbench
+
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 11/06/2022 12:10:19 PM
+// Design Name: 
+// Module Name: testbench_Mult
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+// Code your testbench here
+// or browse Examples
+// Code your testbench here
+// or browse Examples
+module testbench ();
+ parameter N = 4;
+  
+  //inputs to reg
+  reg CLK,Start,Reset; //inputs of control
+  
+  reg [N-1:0] Mplier,Mcand; //inputs of 2C
+  
+  //outputs to wire
+  wire K,M;
+  wire Load,Rshift,AddRshift,Cm; //outputs of control
+ 
+  wire [2*N-1:0]Product; //outputs of 2C
+  wire Done;    //output of 2C
+  
+  
+  MultC_2C control2( .CLK(CLK),.Done(Done),.Reset(Reset), .Mplier(Mplier), .Mcand(Mcand), .Product(Product));
+  
+  initial begin
+    $monitor("Product=%d , Done=%d",Product,Done );
+		 end
+  
+  always @(*) begin
+     #100 CLK <= ~CLK;
+  end
+  
+  initial begin
+  #100 CLK=1'b0; Start=1'b1; Reset=1'b0; Mplier = 4'b0101; Mcand =4'b0101; 
+ 
+ #100 CLK = 1'b1;   Reset=1'b0;    Start=1'b0;    
+ #100 CLK = 1'b0;     Reset=1'b0;  Start=1'b0;   
+ #100 CLK = 1'b1;     Reset=1'b0;  Start=1'b0;   
+ #100 CLK = 1'b0;    Reset=1'b0;   Start=1'b0;   
+ #100 CLK = 1'b1;     Reset=1'b0;  Start=1'b0;   
+  
+    //@(negedge CLK);Start=1'b1; Reset=1'b0; 
+  end
+endmodule
+  
+    
