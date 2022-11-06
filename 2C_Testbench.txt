@@ -1,0 +1,47 @@
+// Code your testbench here
+// or browse Examples
+// Code your testbench here
+// or browse Examples
+module testbench ();
+ parameter N = 4;
+  
+  //inputs to reg
+  reg CLK,Start,Reset,M,K; //inputs of control
+  //reg Load,Rshift,AddRshift,Cm; //inputs of datapath
+  //reg Start,CLK,Reset; //inputs of 2C
+  reg [N-1:0] Mplier,Mcand; //inputs of 2C
+  
+  
+  //outputs to wire
+  wire Load,Rshift,AddRshift,Cm; //outputs of control
+  wire Product; //output of datapath
+ // wire [2*N-1:0]Product; //outputs of 2C
+  wire Done;    //output of 2C
+  
+  
+  MultC_CTRL control(.CLK(CLK),.Start(Start),.Reset(Reset),.M(M),.K(K),.Done(Done),.Load(Load),.Rshift(Rshift),.AddRshift(AddRshift),.Cm(Cm));
+  
+  MultC_DP #(.N(N)) control1(.CLK(CLK),.Load(Load),.Rshift(Rshift),.AddRshift(AddRshift),.Cm(Cm),.Mplier(Mplier),.Mcand(Mcand),.Product(Product));
+  
+  MultC_2C control2( .Load(Load),.Rshift(Rshift),.Reset(Reset),.AddRshift(AddRshift),.Cm(Cm), .Mplier(Mplier), .Mcand(Mcand), .Product(Product));
+  
+  initial begin
+    $monitor("Product=%d ,=%d, Done=%d",Product,Done );
+		 end
+  
+  always @(*) begin
+     #100 CLK <= ~CLK;
+  end
+  
+  initial begin
+ CLK=1'b0; Start=1'b0; Reset=1'b1; Mplier = 4'b0101; Mcand =4'b0101;
+ @(negedge CLK);Start=1'b1; Reset=1'b0; 
+ @(negedge CLK);Start=1'b1; Reset=1'b0; 
+ @(negedge CLK);Start=1'b1; Reset=1'b0; 
+ @(negedge CLK);Start=1'b1; Reset=1'b0; 
+ @(negedge CLK);Start=1'b1; Reset=1'b0; 
+ @(negedge CLK);Start=1'b1; Reset=1'b0; 
+ @(negedge CLK);Start=1'b1; Reset=1'b0; 
+    
+  end
+endmodule
