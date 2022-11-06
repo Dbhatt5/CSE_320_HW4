@@ -1,0 +1,57 @@
+module MultC_DP ( Load,Rshift,AddRshift,Cm, Mplier, Mcand, Product);
+  
+  
+  `define S0 2'b00;
+  `define S1 2'b01;
+  `define S2 2'b10;
+  `define S3 2'b11;
+  
+  parameter N = 4;
+input Load;
+input Rshift;
+input AddRshift;
+input Cm;
+
+  input[N-1:0] Mplier;//multiplier
+  input[N-1:0] Mcand;//multiplicand
+  
+output[2*N-1:0] Product;
+reg[N-1:0] Accum, B;
+reg[N-1:0] State,PS, NS;
+  
+  
+assign state_out = PS;
+assign nextState_out=NS;
+  
+  
+  
+  assign compout = (Cm == 1'b1) ? ~Mcand : Mcand ;
+assign addout = Accum + compout + Cm ;
+  
+always @(posedge CLK)
+ begin
+ if (Load == 1'b1)
+ begin
+ A <= N'b0;
+ B <= Mplier ;
+ end
+   
+   
+   if (AddRshift == 1'b1)
+ begin
+   Accum <= {compout[N-1], addout[N-1:0]} ;
+   B <= {addout[0], B[N-1:1]} ;
+ end
+   
+   
+   if (Rshift == 1'b1)
+ begin
+   Accum <= {Accum[N-1], Accum[N-1:0]} ;
+   B <= {Accum[0], B[N-1:0]} ;
+ end
+   
+   
+ State <= NS ;
+ end
+  assign Product = {Accum[N-1:0], B} ;
+endmodule

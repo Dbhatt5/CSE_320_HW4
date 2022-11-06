@@ -1,0 +1,30 @@
+module MultC_2C ( Load,Rshift,Reset,AddRshift,Cm, Mplier, Mcand, Product);
+  
+  input Start;
+  input CLK;
+  input Reset;
+  
+  input[N-1:0] Mplier;//multiplier
+  input[N-1:0] Mcand;//multiplicand
+  
+  output[2*N-1:0] Product;
+  output Done;
+  
+  
+  wire Load;
+  wire Rshift;
+  wire AddRshift;
+  wire Cm;
+  wire M;
+  wire K;
+  
+  MultC_DP # (.N(N)) mult1(.Load(Load),.Rshift(Rshift),.AddRshift(AddRshift),.Cm(Cm), .Mplier(Mplier), .Mcand(Mcand), .Product(Product));
+  
+  MultC_CTRL mult2 (.CLK(CLK), .Start(Start),.Reset(Reset),.M(M), .K(K), .Product(Product), .Done(Done),.AddRshift(AddRshift),.Cm(Cm),.Rshift(Rshift));
+  
+endmodule
+  
+    
+  
+  
+  
