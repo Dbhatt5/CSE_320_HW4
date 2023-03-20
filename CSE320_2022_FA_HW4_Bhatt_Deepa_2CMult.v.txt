@@ -279,7 +279,13 @@ module testbench ();
  #100 CLK = 1'b0;     Reset=1'b0;  Start=1'b0;   
  #100 CLK = 1'b1;     Reset=1'b0;  Start=1'b0;   
  #100 CLK = 1'b0;    Reset=1'b0;   Start=1'b0;   
+ #100 CLK = 1'b1;     Reset=1'b0;  Start=1'b0;  
+ 
+ #100 CLK = 1'b1;   Reset=1'b0;    Start=1'b0;    
+ #100 CLK = 1'b0;     Reset=1'b0;  Start=1'b0;   
  #100 CLK = 1'b1;     Reset=1'b0;  Start=1'b0;   
+ #100 CLK = 1'b0;    Reset=1'b0;   Start=1'b0;   
+ #100 CLK = 1'b1;     Reset=1'b0;  Start=1'b0;  
   
     //@(negedge CLK);Start=1'b1; Reset=1'b0; 
   end
