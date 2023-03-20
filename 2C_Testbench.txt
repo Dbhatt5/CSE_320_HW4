@@ -24,6 +24,9 @@ module testbench ();
   MultC_DP #(.N(N)) control1(.CLK(CLK),.Load(Load),.Rshift(Rshift),.AddRshift(AddRshift),.Cm(Cm),.Mplier(Mplier),.Mcand(Mcand),.Product(Product));
   
   MultC_2C control2( .Load(Load),.Rshift(Rshift),.Reset(Reset),.AddRshift(AddRshift),.Cm(Cm), .Mplier(Mplier), .Mcand(Mcand), .Product(Product));
+  MultC_DP #(.N(N)) control1(.CLK(CLK),.Load(Load),.Rshift(Rshift),.AddRshift(AddRshift),.Cm(Cm),.Mplier(Mplier),.Mcand(Mcand),.Product(Product));
+  
+  MultC_2C control2( .Load(Load),.Rshift(Rshift),.Reset(Reset),.AddRshift(AddRshift),.Cm(Cm), .Mplier(Mplier), .Mcand(Mcand), .Product(Product));
   
   initial begin
     $monitor("Product=%d ,=%d, Done=%d",Product,Done );
